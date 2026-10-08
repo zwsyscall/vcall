@@ -1,0 +1,36 @@
+[config]
+default_to_workspace = false
+
+[tasks.build-loader]
+description = "Compiles the loader"
+command = "cargo"
+args = ["build", "--release", "--bin", "loader"]
+
+[tasks.run-patcher]
+description = "Runs the workspace .text-obfuscator against the loader binary"
+dependencies = ["build-loader"]
+command = "cargo"
+args = [
+    "run",
+    "--release",
+    "-p",
+    "patcher",
+    "--",
+    "--input",
+    "target\\release\\loader.exe",
+    "--output",
+    "target\\release\\loader_patched.exe",
+]
+
+[tasks.strip-metadata]
+description = "Removes .pdata and .xdata sections."
+dependencies = ["run-patcher"]
+command = "rust-objcopy"
+args = [
+    "--remove-section=.xdata",
+    "target\\release\\loader_patched.exe",
+    "target\\release\\final.exe",
+]
+
+[tasks.default]
+alias = "strip-metadata"
